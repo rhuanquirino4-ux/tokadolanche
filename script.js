@@ -34,11 +34,9 @@ function selecionarAdic(elemento, nome, preco) {
 function proximo() {
   if (passoAtual === 1 && !pedidoAtual.mesa) return;
   if (passoAtual === 2 && !document.getElementById("input-nome").value) return;
-
   document.getElementById(`step-${passoAtual}`).classList.remove("active");
   passoAtual++;
   if (passoAtual <= 5) document.getElementById(`step-${passoAtual}`).classList.add("active");
-
   if (passoAtual === 5) {
     document.getElementById("btn-proximo").style.display = "none";
     document.getElementById("btn-enviar").style.display = "block";
@@ -63,7 +61,6 @@ async function finalizar() {
 
   const totalSoma = [...pedidoAtual.itens, ...pedidoAtual.adicionais].reduce((acc, i) => acc + i.preco, 0);
   const numeroRegistro = Math.floor(1000 + Math.random() * 9999);
-
   const dados = {
     nome: nomeInput,
     mesa: pedidoAtual.mesa,
@@ -82,14 +79,11 @@ async function finalizar() {
     });
 
     if (response.ok) {
-      // SALVA NO HISTÓRICO LOCAL
       let historico = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
       historico.push(dados);
       localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-      
       document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado!`;
       document.getElementById("toast").classList.add("show");
-      
       setTimeout(() => { location.reload(); }, 2500);
     } else {
       btn.disabled = false;
@@ -104,65 +98,62 @@ async function finalizar() {
 function abrirRegistro() {
   const modal = document.getElementById("modal-reg");
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
-  
-  let html = `
-    <div class="modal-content" style="background:#fff; color:#000; padding:20px; border-radius:10px; width:90%; max-width:400px; max-height:80vh; overflow-y:auto;">
-      <h2 style="text-align:center; border-bottom:2px solid #ffcc00; padding-bottom:10px;">HISTÓRICO DE PEDIDOS</h2>
-      <div id="lista-pedidos" style="margin-top:15px;">
-  `;
+  let itensHtml = "";
 
   if (lista.length === 0) {
-    html += `<p style="text-align:center;">Nenhum pedido encontrado.</p>`;
+    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido realizado.</p>";
   } else {
-    lista.reverse().forEach((p, index) => {
-      html += `
-        <div style="border:1px solid #ddd; padding:10px; border-radius:5px; margin-bottom:10px; background:#f9f9f9;">
-          <p><strong>#${p.registro}</strong> - ${p.data}</p>
-          <p>Mesa: ${p.mesa} | Total: ${p.total}</p>
-          <button onclick="imprimirExtrato(${lista.length - 1 - index})" style="background:#ffcc00; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold; width:100%;">IMPRIMIR EXTRATO</button>
-        </div>
-      `;
+    // Adicionei line-height e margin-bottom para separar as linhas
+    lista.reverse().forEach((p, idx) => {
+      itensHtml += `
+        <div style="background:#f4f4f4; color:#000; padding:15px; border-radius:8px; margin-bottom:15px; border-left:5px solid #ffcc00; line-height: 1.6;">
+          <p style="margin: 0 0 5px 0;"><strong>Pedido #${p.registro}</strong></p>
+          <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #666;">Data: ${p.data}</p>
+          <p style="margin: 0 0 10px 0;">Mesa: ${p.mesa} | Total: <strong>${p.total}</strong></p>
+          <button onclick="imprimirExtrato(${lista.length - 1 - idx})" style="background:#ffcc00; border:none; padding:10px; border-radius:5px; font-weight:bold; width:100%; cursor:pointer; text-transform: uppercase;">IMPRIMIR EXTRATO</button>
+        </div>`;
     });
   }
 
-  html += `
-      </div>
-      <button onclick="fecharRegistro()" style="margin-top:15px; width:100%; background:#000; color:#ffcc00; padding:10px; border:none; border-radius:5px; font-weight:bold;">VOLTAR AO MENU</button>
-    </div>
-  `;
-  
-  modal.innerHTML = html;
+  modal.innerHTML = `
+    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+      <h2 style="color:#000; text-align:center; margin-bottom:20px; font-family: sans-serif;">MEUS PEDIDOS</h2>
+      ${itensHtml}
+      <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
+    </div>`;
   modal.style.display = "flex";
 }
 
 function imprimirExtrato(index) {
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
   const p = lista[index];
+  const win = window.open('', '', 'width=600,height=800');
   
-  const janela = window.open('', '', 'width=600,height=600');
-  janela.document.write(`
+  // No extrato, usei padding e margin para não ficar tudo grudado na borda
+  win.document.write(`
     <html>
-      <body style="font-family:monospace; padding:20px;">
+      <body style="font-family:monospace; padding:30px; line-height: 1.5; color: #333;">
         <center>
-          <h1>TOKADOLANCHE</h1>
-          <p>--------------------------------</p>
-          <p><strong>EXTRATO DO PEDIDO #${p.registro}</strong></p>
-          <p>${p.data}</p>
-          <p>--------------------------------</p>
+          <h1 style="margin-bottom: 5px;">TOKADOLANCHE</h1>
+          <p style="margin-top: 0;">EXTRATO DO PEDIDO #${p.registro}</p>
         </center>
+        <hr style="border: 1px dashed #000; margin: 20px 0;">
         <p><strong>CLIENTE:</strong> ${p.nome}</p>
         <p><strong>MESA:</strong> ${p.mesa}</p>
-        <p>--------------------------------</p>
-        <p><strong>ITENS:</strong></p>
-        ${p.itens.map(i => `<p>${i.nome} - R$ ${i.preco.toFixed(2)}</p>`).join('')}
-        ${p.adicionais.length > 0 ? `<p><strong>ADICIONAIS:</strong></p>` + p.adicionais.map(a => `<p>${a.nome} - R$ ${a.preco.toFixed(2)}</p>`).join('') : ''}
-        <p>--------------------------------</p>
-        <center><h2>TOTAL: ${p.total}</h2></center>
-        <script>window.print(); window.close();</script>
+        <p><strong>DATA:</strong> ${p.data}</p>
+        <hr style="border: 1px dashed #000; margin: 20px 0;">
+        <p style="text-decoration: underline; margin-bottom: 10px;"><strong>ITENS DO PEDIDO:</strong></p>
+        <div style="margin-bottom: 20px;">
+          ${p.itens.map(i => `<p style="margin: 5px 0;">• ${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2).replace('.',',')}</span></p>`).join('')}
+          ${p.adicionais.length > 0 ? `<p style="margin: 15px 0 5px 0;"><strong>ADICIONAIS:</strong></p>` + p.adicionais.map(a => `<p style="margin: 5px 0;">+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2).replace('.',',')}</span></p>`).join('') : ''}
+        </div>
+        <hr style="border: 1px dashed #000; margin: 20px 0;">
+        <center><h2 style="margin-top: 10px;">TOTAL: ${p.total}</h2></center>
+        <p style="text-align: center; font-size: 0.8em; margin-top: 30px;">Obrigado pela preferência!</p>
+        <script>window.print(); window.close();<\/script>
       </body>
-    </html>
-  `);
-  janela.document.close();
+    </html>`);
+  win.document.close();
 }
 
 function fecharRegistro() {
