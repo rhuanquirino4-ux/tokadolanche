@@ -15,9 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function selecionarMesa(numero, elemento) {
   pedidoAtual.mesa = numero;
-  document
-    .querySelectorAll(".mesa")
-    .forEach((m) => m.classList.remove("selecionada"));
+  document.querySelectorAll(".mesa").forEach((m) => m.classList.remove("selecionada"));
   elemento.classList.add("selecionada");
 }
 
@@ -32,15 +30,12 @@ function selecionarAdic(elemento, nome, preco) {
 }
 
 function proximo() {
-  if (passoAtual === 1 && !pedidoAtual.mesa)
-    return alert("Selecione uma mesa!");
-  if (passoAtual === 2 && !document.getElementById("input-nome").value)
-    return alert("Digite o nome!");
+  if (passoAtual === 1 && !pedidoAtual.mesa) return alert("Selecione uma mesa!");
+  if (passoAtual === 2 && !document.getElementById("input-nome").value) return alert("Digite o nome!");
 
   document.getElementById(`step-${passoAtual}`).classList.remove("active");
   passoAtual++;
-  if (passoAtual <= 5)
-    document.getElementById(`step-${passoAtual}`).classList.add("active");
+  if (passoAtual <= 5) document.getElementById(`step-${passoAtual}`).classList.add("active");
 
   if (passoAtual === 5) {
     document.getElementById("btn-proximo").style.display = "none";
@@ -64,10 +59,7 @@ async function finalizar() {
   btn.disabled = true;
   btn.innerText = "ENVIANDO...";
 
-  const totalSoma = [...pedidoAtual.itens, ...pedidoAtual.adicionais].reduce(
-    (acc, i) => acc + i.preco,
-    0,
-  );
+  const totalSoma = [...pedidoAtual.itens, ...pedidoAtual.adicionais].reduce((acc, i) => acc + i.preco, 0);
   const dados = {
     nome: nomeInput,
     mesa: pedidoAtual.mesa,
@@ -77,7 +69,7 @@ async function finalizar() {
   };
 
   try {
-    const response = await fetch("http://127.0.0.1:3000/novo-pedido", {
+    const response = await fetch("https://tokadolanche-api.onrender.com/novo-pedido", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(dados),
@@ -90,9 +82,10 @@ async function finalizar() {
     } else {
       alert("Erro no servidor.");
       btn.disabled = false;
+      btn.innerText = "ENVIAR PEDIDO";
     }
   } catch (e) {
-    alert("Erro de conexão! O servidor (terminal) está ligado?");
+    alert("Erro de conexão com o servidor.");
     btn.disabled = false;
     btn.innerText = "ENVIAR PEDIDO";
   }
