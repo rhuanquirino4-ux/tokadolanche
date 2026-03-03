@@ -1,5 +1,6 @@
 let passoAtual = 1;
 let pedidoAtual = { mesa: "", nome: "", itens: [], adicionais: [] };
+let ultimoRegistro = null; // Guarda o último pedido feito nesta sessão
 
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("grid-mesas");
@@ -32,8 +33,8 @@ function selecionarAdic(elemento, nome, preco) {
 }
 
 function proximo() {
-  if (passoAtual === 1 && !pedidoAtual.mesa) return alert("Selecione uma mesa!");
-  if (passoAtual === 2 && !document.getElementById("input-nome").value) return alert("Digite o nome!");
+  if (passoAtual === 1 && !pedidoAtual.mesa) return;
+  if (passoAtual === 2 && !document.getElementById("input-nome").value) return;
 
   document.getElementById(`step-${passoAtual}`).classList.remove("active");
   passoAtual++;
@@ -62,12 +63,15 @@ async function finalizar() {
   btn.innerText = "ENVIANDO...";
 
   const totalSoma = [...pedidoAtual.itens, ...pedidoAtual.adicionais].reduce((acc, i) => acc + i.preco, 0);
+  const numeroRegistro = Math.floor(1000 + Math.random() * 9000);
+
   const dados = {
     nome: nomeInput,
     mesa: pedidoAtual.mesa,
     total: `R$ ${totalSoma.toFixed(2).replace(".", ",")}`,
     itens: pedidoAtual.itens,
     adicionais: pedidoAtual.adicionais,
+    registro: numeroRegistro
   };
 
   try {
@@ -78,25 +82,55 @@ async function finalizar() {
     });
 
     if (response.ok) {
-      document.getElementById("t-nome").innerText = nomeInput;
+      // Salva no localStorage para o registro não sumir se a página recarregar
+      localStorage.setItem('ultimoPedido', JSON.stringify(dados));
+      
+      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido: #${numeroRegistro}`;
       document.getElementById("toast").classList.add("show");
-      setTimeout(() => location.reload(), 2000);
+      
+      setTimeout(() => {
+        location.reload();
+      }, 4000);
     } else {
-      alert("Erro no servidor do Render.");
       btn.disabled = false;
-      btn.innerText = "ENVIAR PEDIDO";
+      btn.innerText = "TENTAR NOVAMENTE";
     }
   } catch (e) {
-    alert("Erro de conexão! O servidor no Render está ligando? Tente novamente em alguns segundos.");
     btn.disabled = false;
-    btn.innerText = "ENVIAR PEDIDO";
+    btn.innerText = "ERRO DE CONEXÃO";
   }
 }
 
 function abrirRegistro() {
-  document.getElementById("modal-reg").style.display = "flex";
+  const modal = document.getElementById("modal-reg");
+  const dadosSalvos = localStorage.getItem('ultimoPedido');
+  
+  if (dadosSalvos) {
+    const p = JSON.parse(dadosSalvos);
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>MEU REGISTRO</h2>
+        <hr>
+        <p><b>Status:</b> ✅ Enviado</p>
+        <p><b>Pedido:</b> #${p.registro}</p>
+        <p><b>Cliente:</b> ${p.nome}</p>
+        <p><b>Mesa:</b> ${p.mesa}</p>
+        <p><b>Total:</b> ${p.total}</p>
+        <button onclick="fecharRegistro()" style="margin-top:20px; background: #ffcc00; border:none; padding:10px; border-radius:5px; cursor:pointer;">FECHAR</button>
+      </div>
+    `;
+  } else {
+    modal.innerHTML = `
+      <div class="modal-content">
+        <h2>SEM REGISTROS</h2>
+        <p>Você ainda não fez nenhum pedido.</p>
+        <button onclick="fecharRegistro()" style="margin-top:20px; background: #ccc; border:none; padding:10px; border-radius:5px; cursor:pointer;">FECHAR</button>
+      </div>
+    `;
+  }
+  modal.style.display = "flex";
 }
 
 function fecharRegistro() {
   document.getElementById("modal-reg").style.display = "none";
-}
+}    
