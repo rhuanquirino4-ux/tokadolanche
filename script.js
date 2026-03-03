@@ -3,13 +3,15 @@ let pedidoAtual = { mesa: "", nome: "", itens: [], adicionais: [] };
 
 document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("grid-mesas");
-  grid.innerHTML = "";
-  for (let i = 1; i <= 20; i++) {
-    const divMesa = document.createElement("div");
-    divMesa.className = "mesa";
-    divMesa.innerHTML = `<h3>${i < 10 ? "0" + i : i}</h3><p>DISPONÍVEL</p>`;
-    divMesa.onclick = () => selecionarMesa(i, divMesa);
-    grid.appendChild(divMesa);
+  if (grid) {
+    grid.innerHTML = "";
+    for (let i = 1; i <= 20; i++) {
+      const divMesa = document.createElement("div");
+      divMesa.className = "mesa";
+      divMesa.innerHTML = `<h3>${i < 10 ? "0" + i : i}</h3><p>DISPONÍVEL</p>`;
+      divMesa.onclick = () => selecionarMesa(i, divMesa);
+      grid.appendChild(divMesa);
+    }
   }
 });
 
@@ -80,12 +82,12 @@ async function finalizar() {
       document.getElementById("toast").classList.add("show");
       setTimeout(() => location.reload(), 2000);
     } else {
-      alert("Erro no servidor.");
+      alert("Erro no servidor do Render.");
       btn.disabled = false;
       btn.innerText = "ENVIAR PEDIDO";
     }
   } catch (e) {
-    alert("Erro de conexão com o servidor.");
+    alert("Erro de conexão! O servidor no Render está ligando? Tente novamente em alguns segundos.");
     btn.disabled = false;
     btn.innerText = "ENVIAR PEDIDO";
   }
