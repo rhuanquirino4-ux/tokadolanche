@@ -106,12 +106,7 @@ async function finalizar() {
       document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! Cozinha Notificada.`;
       document.getElementById("toast").classList.add("show");
       
-      setTimeout(() => { location.reload(); }, 2500);
-    } else {
-      // Se der erro 500 ou outro, ele apenas recarrega ou avisa, sem o botão de tentar novamente persistente
-      alert("Erro ao enviar pedido. Verifique a conexão.");
-      location.reload();
-    }
+    
   } catch (e) {
     alert("Erro de conexão com o servidor.");
     location.reload();
@@ -180,3 +175,4 @@ function imprimirExtrato(index) {
 function fecharRegistro() {
   document.getElementById("modal-reg").style.display = "none";
 }
+
