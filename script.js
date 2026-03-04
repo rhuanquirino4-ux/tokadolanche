@@ -102,14 +102,17 @@ async function finalizar() {
       historico.push(dados);
       localStorage.setItem('historicoPedidos', JSON.stringify(historico));
       
-      // Notificação de Sucesso
       document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! Cozinha Notificada.`;
       document.getElementById("toast").classList.add("show");
       
-    
+      setTimeout(() => { location.reload(); }, 2500);
+    } else {
+      btn.disabled = false;
+      btn.innerText = "ENVIAR PEDIDO";
+    }
   } catch (e) {
-    alert("Erro de conexão com o servidor.");
-    location.reload();
+    btn.disabled = false;
+    btn.innerText = "ENVIAR PEDIDO";
   }
 }
 
@@ -136,7 +139,7 @@ function abrirRegistro() {
 
   modal.innerHTML = `
     <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto;">
-      <h2 style="color:#000; text-align:center; margin-bottom:20px;">PEDIDOS (ÚLTIMAS 7H)</h2>
+      <h2 style="color:#000; text-align:center; margin-bottom:20px;">PEDIDOS (7H)</h2>
       ${itensHtml}
       <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
     </div>`;
@@ -156,12 +159,12 @@ function imprimirExtrato(index) {
         <hr style="border: 1px dashed #000;">
         <p>CLIENTE: ${p.nome} | MESA: ${p.mesa}</p>
         <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
-          <p><strong> COZINHA:</strong></p>
-          ${itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('')}
+          <p><strong>👨‍🍳 COZINHA:</strong></p>
+          ${itensArtesanais.length > 0 ? itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Somente Industrial</p>'}
           ${p.adicionais.length > 0 ? `<p>+ ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
         </div>
         <hr style="border: 1px dashed #000;">
-        <p><strong>FINANCEIRO:</strong></p>
+        <p><strong>DETALHE COMPLETO:</strong></p>
         ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
         ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
         <hr style="border: 1px dashed #000;">
