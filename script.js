@@ -2,19 +2,24 @@ let passoAtual = 1;
 let pedidoAtual = { mesa: "", nome: "", itens: [], adicionais: [] };
 
 document.addEventListener("DOMContentLoaded", () => {
+  renderizarMesas();
+  limparPedidosAntigos();
+});
+
+function renderizarMesas() {
   const grid = document.getElementById("grid-mesas");
   if (grid) {
     grid.innerHTML = "";
     for (let i = 1; i <= 20; i++) {
       const divMesa = document.createElement("div");
       divMesa.className = "mesa";
-      divMesa.innerHTML = `<h3>${i < 10 ? "0" + i : i}</h3><p>DISPONÍVEL</p>`;
+      const num = i < 10 ? "0" + i : i;
+      divMesa.innerHTML = `<h3>${num}</h3><p>DISPONÍVEL</p>`;
       divMesa.onclick = () => selecionarMesa(i, divMesa);
       grid.appendChild(divMesa);
     }
   }
-  limparPedidosAntigos();
-});
+}
 
 function limparPedidosAntigos() {
   let lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
@@ -149,7 +154,7 @@ function abrirRegistro() {
 function imprimirExtrato(index) {
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
   const p = lista[index];
-  const itensArtesanais = p.itens.filter(i => i.tipo === 'artesanal');
+  const artesanais = p.itens.filter(i => i.tipo === 'artesanal');
   const win = window.open('', '', 'width=600,height=800');
   
   win.document.write(`
@@ -159,12 +164,12 @@ function imprimirExtrato(index) {
         <hr style="border: 1px dashed #000;">
         <p>CLIENTE: ${p.nome} | MESA: ${p.mesa}</p>
         <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
-          <p><strong>👨‍🍳 COZINHA:</strong></p>
-          ${itensArtesanais.length > 0 ? itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Somente Industrial</p>'}
+          <p><strong>👨‍🍳 PRODUÇÃO COZINHA:</strong></p>
+          ${artesanais.length > 0 ? artesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Sem itens artesanais</p>'}
           ${p.adicionais.length > 0 ? `<p>+ ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
         </div>
         <hr style="border: 1px dashed #000;">
-        <p><strong>DETALHE COMPLETO:</strong></p>
+        <p><strong>RESUMO FINANCEIRO:</strong></p>
         ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
         ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
         <hr style="border: 1px dashed #000;">
