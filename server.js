@@ -4,7 +4,8 @@ const { Pool } = require('pg');
 const cors = require('cors');
 
 const app = express();
-app.use(cors({ origin: '*' }));
+
+app.use(cors());
 app.use(express.json());
 
 const pool = new Pool({
@@ -16,7 +17,7 @@ app.post('/novo-pedido', async (req, res) => {
   const { nome, mesa, total, itens, adicionais, registro } = req.body;
   
   try {
-    await pool.query(
+    pool.query(
       'INSERT INTO pedidos (cliente_nome, mesa, total_valor, itens, adicionais) VALUES ($1, $2, $3, $4, $5)',
       [nome, mesa, total, JSON.stringify(itens), JSON.stringify(adicionais)]
     ).catch(e => console.error(e.message));
@@ -31,7 +32,9 @@ app.post('/novo-pedido', async (req, res) => {
 
     if (artesanais.length > 0) {
       msg += `*COZINHA:*\n${artesanais.map(i => `• ${i.nome}`).join('\n')}\n`;
-      if (adicionais?.length > 0) msg += `_Adic:_ ${adicionais.map(a => a.nome).join(', ')}\n`;
+      if (adicionais && adicionais.length > 0) {
+        msg += `_Adicionais:_ ${adicionais.map(a => a.nome).join(', ')}\n`;
+      }
       msg += `\n`;
     }
 
@@ -41,16 +44,24 @@ app.post('/novo-pedido', async (req, res) => {
 
     msg += `───────────────────\n*TOTAL:* ${total}`;
 
-    await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
+    const responseTelegram = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: process.env.CHAT_ID, text: msg, parse_mode: 'Markdown' })
+      body: JSON.stringify({
+        chat_id: process.env.CHAT_ID,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
     });
+
+    if (!responseTelegram.ok) {
+        throw new Error('Telegram Error');
+    }
 
     return res.status(201).json({ status: "OK" });
 
   } catch (err) {
-    return res.status(500).json({ error: "Erro interno" });
+    return res.status(500).json({ error: "Internal Error" });
   }
 });
 
