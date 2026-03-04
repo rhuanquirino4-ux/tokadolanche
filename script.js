@@ -21,8 +21,8 @@ function selecionarMesa(numero, elemento) {
   elemento.classList.add("selecionada");
 }
 
-function selecionarProd(elemento, nome, preco) {
-  pedidoAtual.itens.push({ nome, preco });
+function selecionarProd(elemento, nome, preco, tipo = 'artesanal') {
+  pedidoAtual.itens.push({ nome, preco, tipo });
   elemento.classList.toggle("ativo");
 }
 
@@ -82,9 +82,11 @@ async function finalizar() {
       let historico = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
       historico.push(dados);
       localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado!`;
+      
+      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! A cozinha foi notificada.`;
       document.getElementById("toast").classList.add("show");
-      setTimeout(() => { location.reload(); }, 2500);
+      
+      setTimeout(() => { location.reload(); }, 3000);
     } else {
       btn.disabled = false;
       btn.innerText = "TENTAR NOVAMENTE";
@@ -103,21 +105,22 @@ function abrirRegistro() {
   if (lista.length === 0) {
     itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido realizado.</p>";
   } else {
-    // Adicionei line-height e margin-bottom para separar as linhas
-    lista.reverse().forEach((p, idx) => {
+    const listaInvertida = [...lista].reverse();
+    listaInvertida.forEach((p, idx) => {
+      const originalIndex = lista.length - 1 - idx;
       itensHtml += `
         <div style="background:#f4f4f4; color:#000; padding:15px; border-radius:8px; margin-bottom:15px; border-left:5px solid #ffcc00; line-height: 1.6;">
-          <p style="margin: 0 0 5px 0;"><strong>Pedido #${p.registro}</strong></p>
-          <p style="margin: 0 0 5px 0; font-size: 0.9em; color: #666;">Data: ${p.data}</p>
-          <p style="margin: 0 0 10px 0;">Mesa: ${p.mesa} | Total: <strong>${p.total}</strong></p>
-          <button onclick="imprimirExtrato(${lista.length - 1 - idx})" style="background:#ffcc00; border:none; padding:10px; border-radius:5px; font-weight:bold; width:100%; cursor:pointer; text-transform: uppercase;">IMPRIMIR EXTRATO</button>
+          <p><strong>Pedido #${p.registro}</strong></p>
+          <p style="font-size: 0.8em; color: #666;">${p.data}</p>
+          <p>Mesa: ${p.mesa} | Total: <strong>${p.total}</strong></p>
+          <button onclick="imprimirExtrato(${originalIndex})" style="background:#ffcc00; border:none; padding:10px; border-radius:5px; font-weight:bold; width:100%; cursor:pointer; margin-top:10px;">IMPRIMIR</button>
         </div>`;
     });
   }
 
   modal.innerHTML = `
-    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-      <h2 style="color:#000; text-align:center; margin-bottom:20px; font-family: sans-serif;">MEUS PEDIDOS</h2>
+    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto;">
+      <h2 style="color:#000; text-align:center; margin-bottom:20px;">MEUS PEDIDOS</h2>
       ${itensHtml}
       <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
     </div>`;
@@ -127,29 +130,34 @@ function abrirRegistro() {
 function imprimirExtrato(index) {
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
   const p = lista[index];
+  const itensArtesanais = p.itens.filter(i => i.tipo === 'artesanal');
   const win = window.open('', '', 'width=600,height=800');
   
-  // No extrato, usei padding e margin para não ficar tudo grudado na borda
   win.document.write(`
     <html>
-      <body style="font-family:monospace; padding:30px; line-height: 1.5; color: #333;">
+      <body style="font-family:monospace; padding:20px; line-height: 1.4;">
         <center>
-          <h1 style="margin-bottom: 5px;">TOKADOLANCHE</h1>
-          <p style="margin-top: 0;">EXTRATO DO PEDIDO #${p.registro}</p>
+          <h1>TOKADOLANCHE</h1>
+          <p>EXTRATO #${p.registro}</p>
         </center>
-        <hr style="border: 1px dashed #000; margin: 20px 0;">
-        <p><strong>CLIENTE:</strong> ${p.nome}</p>
-        <p><strong>MESA:</strong> ${p.mesa}</p>
-        <p><strong>DATA:</strong> ${p.data}</p>
-        <hr style="border: 1px dashed #000; margin: 20px 0;">
-        <p style="text-decoration: underline; margin-bottom: 10px;"><strong>ITENS DO PEDIDO:</strong></p>
-        <div style="margin-bottom: 20px;">
-          ${p.itens.map(i => `<p style="margin: 5px 0;">• ${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2).replace('.',',')}</span></p>`).join('')}
-          ${p.adicionais.length > 0 ? `<p style="margin: 15px 0 5px 0;"><strong>ADICIONAIS:</strong></p>` + p.adicionais.map(a => `<p style="margin: 5px 0;">+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2).replace('.',',')}</span></p>`).join('') : ''}
+        <hr style="border: 1px dashed #000;">
+        <p>CLIENTE: ${p.nome}</p>
+        <p>MESA: ${p.mesa}</p>
+        <p>DATA: ${p.data}</p>
+        
+        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
+          <p><strong>PRODUÇÃO (COZINHA):</strong></p>
+          ${itensArtesanais.length > 0 ? itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Nenhum item artesanal</p>'}
+          ${p.adicionais.length > 0 ? `<p>+ ADIC: ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
         </div>
-        <hr style="border: 1px dashed #000; margin: 20px 0;">
-        <center><h2 style="margin-top: 10px;">TOTAL: ${p.total}</h2></center>
-        <p style="text-align: center; font-size: 0.8em; margin-top: 30px;">Obrigado pela preferência!</p>
+
+        <hr style="border: 1px dashed #000;">
+        <p><strong>DETALHES DO PEDIDO:</strong></p>
+        ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
+        ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
+        
+        <hr style="border: 1px dashed #000;">
+        <center><h2>TOTAL: ${p.total}</h2></center>
         <script>window.print(); window.close();<\/script>
       </body>
     </html>`);
