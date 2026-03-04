@@ -13,7 +13,35 @@ document.addEventListener("DOMContentLoaded", () => {
       grid.appendChild(divMesa);
     }
   }
+  // Limpa pedidos antigos (7h) logo ao abrir o app
+  limparPedidosAntigos();
 });
+
+function limparPedidosAntigos() {
+  let lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
+  const agora = new Date().getTime();
+  const seteHorasEmMs = 7 * 60 * 60 * 1000;
+
+  const listaFiltrada = lista.filter(p => {
+    // Converte "DD/MM/AAAA, HH:MM:SS" para timestamp
+    const partes = p.data.split(', ');
+    const dataPartes = partes[0].split('/');
+    const horaPartes = partes[1].split(':');
+    
+    const dataPedido = new Date(
+      dataPartes[2], // ano
+      dataPartes[1] - 1, // mes
+      dataPartes[0], // dia
+      horaPartes[0], // hora
+      horaPartes[1], // min
+      horaPartes[2]  // seg
+    ).getTime();
+
+    return (agora - dataPedido) < seteHorasEmMs;
+  });
+
+  localStorage.setItem('historicoPedidos', JSON.stringify(listaFiltrada));
+}
 
 function selecionarMesa(numero, elemento) {
   pedidoAtual.mesa = numero;
@@ -98,12 +126,13 @@ async function finalizar() {
 }
 
 function abrirRegistro() {
+  limparPedidosAntigos(); // Limpa antes de mostrar a lista
   const modal = document.getElementById("modal-reg");
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
   let itensHtml = "";
 
   if (lista.length === 0) {
-    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido realizado.</p>";
+    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido recente (últimas 7h).</p>";
   } else {
     const listaInvertida = [...lista].reverse();
     listaInvertida.forEach((p, idx) => {
@@ -119,8 +148,8 @@ function abrirRegistro() {
   }
 
   modal.innerHTML = `
-    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto;">
-      <h2 style="color:#000; text-align:center; margin-bottom:20px;">MEUS PEDIDOS</h2>
+    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+      <h2 style="color:#000; text-align:center; margin-bottom:20px;">MEUS PEDIDOS (7H)</h2>
       ${itensHtml}
       <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
     </div>`;
@@ -145,14 +174,14 @@ function imprimirExtrato(index) {
         <p>MESA: ${p.mesa}</p>
         <p>DATA: ${p.data}</p>
         
-        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
-          <p><strong>PRODUÇÃO (COZINHA):</strong></p>
+        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0; background: #f9f9f9;">
+          <p><strong> PARA COZINHA (preparado):</strong></p>
           ${itensArtesanais.length > 0 ? itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Nenhum item artesanal</p>'}
-          ${p.adicionais.length > 0 ? `<p>+ ADIC: ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
+          ${p.adicionais.length > 0 ? `<p><strong>+ ADICIONAIS:</strong> ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
         </div>
 
         <hr style="border: 1px dashed #000;">
-        <p><strong>DETALHES DO PEDIDO:</strong></p>
+        <p><strong>RESUMO FINANCEIRO (TUDO):</strong></p>
         ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
         ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
         
