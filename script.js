@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
       grid.appendChild(divMesa);
     }
   }
-  // Limpa pedidos antigos (7h) logo ao abrir o app
   limparPedidosAntigos();
 });
 
@@ -23,21 +22,13 @@ function limparPedidosAntigos() {
   const seteHorasEmMs = 7 * 60 * 60 * 1000;
 
   const listaFiltrada = lista.filter(p => {
-    // Converte "DD/MM/AAAA, HH:MM:SS" para timestamp
-    const partes = p.data.split(', ');
-    const dataPartes = partes[0].split('/');
-    const horaPartes = partes[1].split(':');
-    
-    const dataPedido = new Date(
-      dataPartes[2], // ano
-      dataPartes[1] - 1, // mes
-      dataPartes[0], // dia
-      horaPartes[0], // hora
-      horaPartes[1], // min
-      horaPartes[2]  // seg
-    ).getTime();
-
-    return (agora - dataPedido) < seteHorasEmMs;
+    try {
+      const partes = p.data.split(', ');
+      const dataPartes = partes[0].split('/');
+      const horaPartes = partes[1].split(':');
+      const dataPedido = new Date(dataPartes[2], dataPartes[1] - 1, dataPartes[0], horaPartes[0], horaPartes[1], horaPartes[2]).getTime();
+      return (agora - dataPedido) < seteHorasEmMs;
+    } catch (e) { return true; }
   });
 
   localStorage.setItem('historicoPedidos', JSON.stringify(listaFiltrada));
@@ -111,34 +102,35 @@ async function finalizar() {
       historico.push(dados);
       localStorage.setItem('historicoPedidos', JSON.stringify(historico));
       
-      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! A cozinha foi notificada.`;
+      // Notificação de Sucesso
+      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! Cozinha Notificada.`;
       document.getElementById("toast").classList.add("show");
       
-      setTimeout(() => { location.reload(); }, 3000);
+      setTimeout(() => { location.reload(); }, 2500);
     } else {
-      btn.disabled = false;
-      btn.innerText = "TENTAR NOVAMENTE";
+      // Se der erro 500 ou outro, ele apenas recarrega ou avisa, sem o botão de tentar novamente persistente
+      alert("Erro ao enviar pedido. Verifique a conexão.");
+      location.reload();
     }
   } catch (e) {
-    btn.disabled = false;
-    btn.innerText = "ERRO DE CONEXÃO";
+    alert("Erro de conexão com o servidor.");
+    location.reload();
   }
 }
 
 function abrirRegistro() {
-  limparPedidosAntigos(); // Limpa antes de mostrar a lista
+  limparPedidosAntigos();
   const modal = document.getElementById("modal-reg");
   const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
   let itensHtml = "";
 
   if (lista.length === 0) {
-    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido recente (últimas 7h).</p>";
+    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido recente.</p>";
   } else {
-    const listaInvertida = [...lista].reverse();
-    listaInvertida.forEach((p, idx) => {
+    [...lista].reverse().forEach((p, idx) => {
       const originalIndex = lista.length - 1 - idx;
       itensHtml += `
-        <div style="background:#f4f4f4; color:#000; padding:15px; border-radius:8px; margin-bottom:15px; border-left:5px solid #ffcc00; line-height: 1.6;">
+        <div style="background:#f4f4f4; color:#000; padding:15px; border-radius:8px; margin-bottom:15px; border-left:5px solid #ffcc00;">
           <p><strong>Pedido #${p.registro}</strong></p>
           <p style="font-size: 0.8em; color: #666;">${p.data}</p>
           <p>Mesa: ${p.mesa} | Total: <strong>${p.total}</strong></p>
@@ -148,8 +140,8 @@ function abrirRegistro() {
   }
 
   modal.innerHTML = `
-    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-      <h2 style="color:#000; text-align:center; margin-bottom:20px;">MEUS PEDIDOS (7H)</h2>
+    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto;">
+      <h2 style="color:#000; text-align:center; margin-bottom:20px;">PEDIDOS (ÚLTIMAS 7H)</h2>
       ${itensHtml}
       <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
     </div>`;
@@ -164,27 +156,19 @@ function imprimirExtrato(index) {
   
   win.document.write(`
     <html>
-      <body style="font-family:monospace; padding:20px; line-height: 1.4;">
-        <center>
-          <h1>TOKADOLANCHE</h1>
-          <p>EXTRATO #${p.registro}</p>
-        </center>
+      <body style="font-family:monospace; padding:20px;">
+        <center><h1>TOKADOLANCHE</h1><p>EXTRATO #${p.registro}</p></center>
         <hr style="border: 1px dashed #000;">
-        <p>CLIENTE: ${p.nome}</p>
-        <p>MESA: ${p.mesa}</p>
-        <p>DATA: ${p.data}</p>
-        
-        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0; background: #f9f9f9;">
-          <p><strong> PARA COZINHA (preparado):</strong></p>
-          ${itensArtesanais.length > 0 ? itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Nenhum item artesanal</p>'}
-          ${p.adicionais.length > 0 ? `<p><strong>+ ADICIONAIS:</strong> ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
+        <p>CLIENTE: ${p.nome} | MESA: ${p.mesa}</p>
+        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
+          <p><strong> COZINHA:</strong></p>
+          ${itensArtesanais.map(i => `<p>• ${i.nome}</p>`).join('')}
+          ${p.adicionais.length > 0 ? `<p>+ ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
         </div>
-
         <hr style="border: 1px dashed #000;">
-        <p><strong>RESUMO FINANCEIRO (TUDO):</strong></p>
+        <p><strong>FINANCEIRO:</strong></p>
         ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
         ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
-        
         <hr style="border: 1px dashed #000;">
         <center><h2>TOTAL: ${p.total}</h2></center>
         <script>window.print(); window.close();<\/script>
