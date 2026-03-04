@@ -175,4 +175,3 @@ function imprimirExtrato(index) {
 function fecharRegistro() {
   document.getElementById("modal-reg").style.display = "none";
 }
-
