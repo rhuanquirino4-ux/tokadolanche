@@ -221,36 +221,6 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
-.card-reg {
-  background: #ffffff;
-  padding: 15px;
-  margin-bottom: 12px;
-  border: 2px solid #eee;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.card-reg.selecionado-print {
-  border-color: #fff642;
-  background: #fffef0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.btn-print {
-  width: 100%;
-  padding: 15px;
-  background: #fff642;
-  color: #000;
-  border: none;
-  margin-top: 15px;
-  border-radius: 10px;
-  font-weight: bold;
-  opacity: 0.5;
-  pointer-events: none;
-}
-.btn-print.ativo {
-  opacity: 1;
-  pointer-events: auto;
-}
 .toast {
   position: fixed;
   right: -350px;
@@ -262,8 +232,8 @@ body {
   transition: 0.5s;
   z-index: 3000;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border-left: 5px solid #fff642;
 }
 .toast.show {
   right: 0;
 }
-
