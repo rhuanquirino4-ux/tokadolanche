@@ -17,26 +17,47 @@ app.post('/novo-pedido', async (req, res) => {
   const { nome, mesa, total, itens, adicionais, registro } = req.body;
   
   try {
-    // 1. Limpeza Automática: Apaga pedidos com mais de 12 horas
     await pool.query(
       "DELETE FROM pedidos WHERE data_pedido < NOW() - INTERVAL '12 hours'"
     );
 
-    // 2. Salva o novo pedido no Banco Neon
-    // Certifique-se de que sua coluna de data se chama 'data_pedido' ou ajuste abaixo
     await pool.query(
       'INSERT INTO pedidos (cliente_nome, mesa, total_valor, itens, adicionais) VALUES ($1, $2, $3, $4, $5)',
       [nome, mesa, total, JSON.stringify(itens), JSON.stringify(adicionais)]
     );
 
-    // 3. Envia para o Telegram
-    const msg = encodeURIComponent(
-      ` *REGISTRO DE PEDIDO #${registro}*\n\n` +
-      ` *Cliente:* ${nome}\n` +
-      ` *Mesa:* ${mesa}\n` +
-      ` *Total:* ${total}\n\n` +
-    
-    );
+    const artesanais = itens.filter(i => i.tipo === 'artesanal');
+    const industriais = itens.filter(i => i.tipo === 'industrial');
+
+    let corpoMensagem = `* NOVO PEDIDO: #${registro}*\n`;
+    corpoMensagem += `───────────────────\n`;
+    corpoMensagem += `* CLIENTE:* ${nome}\n`;
+    corpoMensagem += `* MESA:* ${mesa}\n`;
+    corpoMensagem += `───────────────────\n\n`;
+
+    if (artesanais.length > 0) {
+      corpoMensagem += `* COZINHA (preparado):*\n`;
+      artesanais.forEach(item => {
+        corpoMensagem += `• ${item.nome}\n`;
+      });
+      if (adicionais && adicionais.length > 0) {
+        corpoMensagem += `  _Adicionais:_ ${adicionais.map(a => a.nome).join(', ')}\n`;
+      }
+      corpoMensagem += `\n`;
+    }
+
+    if (industriais.length > 0) {
+      corpoMensagem += `* BEBIDAS / OUTROS:*\n`;
+      industriais.forEach(item => {
+        corpoMensagem += `• ${item.nome}\n`;
+      });
+      corpoMensagem += `\n`;
+    }
+
+    corpoMensagem += `───────────────────\n`;
+    corpoMensagem += `* TOTAL:* ${total}`;
+
+    const msg = encodeURIComponent(corpoMensagem);
 
     await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_TOKEN}/sendMessage?chat_id=${process.env.CHAT_ID}&text=${msg}&parse_mode=Markdown`);
 
