@@ -1,185 +1,189 @@
 let passoAtual = 1;
-let pedidoAtual = { mesa: "", nome: "", itens: [], adicionais: [] };
+let pedido = {
+    mesa: null,
+    nome: "",
+    itens: [],
+    adicionais: []
+};
+
+const TITULOS = {
+    1: "Mesas", 2: "Identificação", 3: "Lanches", 
+    4: "Adicionais", 5: "Porções", 6: "Bebidas", 7: "Sobremesas", 8: "Registro"
+};
 
 document.addEventListener("DOMContentLoaded", () => {
-  renderizarMesas();
-  limparPedidosAntigos();
+    const grid = document.getElementById("grid-mesas");
+    if (grid) {
+        for (let i = 1; i <= 20; i++) {
+            let m = document.createElement("div");
+            m.className = "mesa";
+            m.innerHTML = `<h3>${i}</h3><small>LIVRE</small>`;
+            m.onclick = () => {
+                pedido.mesa = i;
+                document.querySelectorAll(".mesa").forEach(el => el.classList.remove("selecionada"));
+                m.classList.add("selecionada");
+            };
+            grid.appendChild(m);
+        }
+    }
+    atualizarTotal();
 });
 
-function renderizarMesas() {
-  const grid = document.getElementById("grid-mesas");
-  if (grid) {
-    grid.innerHTML = "";
-    for (let i = 1; i <= 20; i++) {
-      const divMesa = document.createElement("div");
-      divMesa.className = "mesa";
-      const num = i < 10 ? "0" + i : i;
-      divMesa.innerHTML = `<h3>${num}</h3><p>DISPONÍVEL</p>`;
-      divMesa.onclick = () => selecionarMesa(i, divMesa);
-      grid.appendChild(divMesa);
+function selecionarProd(el, nome) {
+    if (el.classList.contains("esgotado")) return;
+    
+    const precoTexto = el.querySelector("span").innerText;
+    const preco = parseFloat(precoTexto.replace("R$ ", "").replace(",", "."));
+
+    const idx = pedido.itens.findIndex(i => i.nome === nome);
+    if (idx > -1) {
+        pedido.itens.splice(idx, 1);
+        el.classList.remove("ativo");
+    } else {
+        pedido.itens.push({ nome, preco });
+        el.classList.add("ativo");
     }
-  }
+    atualizarTotal();
 }
 
-function limparPedidosAntigos() {
-  let lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
-  const agora = new Date().getTime();
-  const seteHorasEmMs = 7 * 60 * 60 * 1000;
-
-  const listaFiltrada = lista.filter(p => {
-    try {
-      const partes = p.data.split(', ');
-      const dataPartes = partes[0].split('/');
-      const horaPartes = partes[1].split(':');
-      const dataPedido = new Date(dataPartes[2], dataPartes[1] - 1, dataPartes[0], horaPartes[0], horaPartes[1], horaPartes[2]).getTime();
-      return (agora - dataPedido) < seteHorasEmMs;
-    } catch (e) { return true; }
-  });
-
-  localStorage.setItem('historicoPedidos', JSON.stringify(listaFiltrada));
+function selecionarAdic(el, nome, preco) {
+    const idx = pedido.adicionais.findIndex(a => a.nome === nome);
+    if (idx > -1) {
+        pedido.adicionais.splice(idx, 1);
+        el.classList.remove("ativo");
+    } else {
+        pedido.adicionais.push({ nome, preco });
+        el.classList.add("ativo");
+    }
+    atualizarTotal();
 }
 
-function selecionarMesa(numero, elemento) {
-  pedidoAtual.mesa = numero;
-  document.querySelectorAll(".mesa").forEach((m) => m.classList.remove("selecionada"));
-  elemento.classList.add("selecionada");
+function atualizarTotal() {
+    const totalItens = pedido.itens.reduce((sum, i) => sum + i.preco, 0);
+    const totalAdic = pedido.adicionais.reduce((sum, a) => sum + a.preco, 0);
+    const total = totalItens + totalAdic;
+    document.getElementById("total-preview").innerText = `TOTAL: R$ ${total.toFixed(2).replace(".", ",")}`;
 }
 
-function selecionarProd(elemento, nome, preco, tipo = 'artesanal') {
-  pedidoAtual.itens.push({ nome, preco, tipo });
-  elemento.classList.toggle("ativo");
-}
-
-function selecionarAdic(elemento, nome, preco) {
-  pedidoAtual.adicionais.push({ nome, preco });
-  elemento.classList.toggle("ativo");
+function toggleStatus(ev, btn) {
+    ev.stopPropagation();
+    const card = btn.closest(".card-produto") || btn.closest(".card-bebida");
+    
+    let opt = confirm("OK para MUDAR PREÇO ou CANCELAR para ESGOTAR.");
+    
+    if (opt) {
+        let novoPreco = prompt("Novo Preço (ex: 25.00):");
+        if (novoPreco) {
+            card.querySelector("span").innerText = `R$ ${parseFloat(novoPreco).toFixed(2).replace(".", ",")}`;
+        }
+    } else {
+        const estaEsgotado = card.classList.toggle("esgotado");
+        btn.innerHTML = estaEsgotado ? '<i class="fa-solid fa-ban"></i>' : '<i class="fa-solid fa-pencil"></i>';
+    }
 }
 
 function proximo() {
-  if (passoAtual === 1 && !pedidoAtual.mesa) return;
-  if (passoAtual === 2 && !document.getElementById("input-nome").value) return;
-  document.getElementById(`step-${passoAtual}`).classList.remove("active");
-  passoAtual++;
-  if (passoAtual <= 5) document.getElementById(`step-${passoAtual}`).classList.add("active");
-  if (passoAtual === 5) {
-    document.getElementById("btn-proximo").style.display = "none";
-    document.getElementById("btn-enviar").style.display = "block";
-  }
+    if (passoAtual === 1 && !pedido.mesa) return alert("Selecione uma mesa!");
+    if (passoAtual === 2) {
+        const nomeInput = document.getElementById("input-nome").value;
+        if (!nomeInput) return alert("Nome do cliente obrigatório!");
+        pedido.nome = nomeInput;
+    }
+
+    document.getElementById(`step-${passoAtual}`).classList.remove("active");
+    passoAtual++;
+
+    if (passoAtual <= 7) {
+        document.getElementById(`step-${passoAtual}`).classList.add("active");
+        document.getElementById("titulo-passo").innerText = `Toka Do Lanche - ${TITULOS[passoAtual]}`;
+    }
+
+    if (passoAtual === 7) {
+        document.getElementById("btn-proximo").style.display = "none";
+        document.getElementById("btn-enviar").style.display = "block";
+    }
 }
 
 function voltar() {
-  if (passoAtual > 1) {
-    document.getElementById(`step-${passoAtual}`).classList.remove("active");
-    passoAtual--;
-    document.getElementById(`step-${passoAtual}`).classList.add("active");
-    document.getElementById("btn-proximo").style.display = "block";
-    document.getElementById("btn-enviar").style.display = "none";
-  }
+    if (passoAtual === 8) {
+        document.getElementById("registro-aba").classList.remove("active");
+        passoAtual = 1;
+        document.getElementById("step-1").classList.add("active");
+        document.querySelector(".controles").style.display = "flex";
+        return;
+    }
+
+    if (passoAtual > 1) {
+        document.getElementById(`step-${passoAtual}`).classList.remove("active");
+        if (passoAtual === 7) {
+            document.getElementById("btn-proximo").style.display = "block";
+            document.getElementById("btn-enviar").style.display = "none";
+        }
+        passoAtual--;
+        document.getElementById(`step-${passoAtual}`).classList.add("active");
+        document.getElementById("titulo-passo").innerText = `Toka Do Lanche - ${TITULOS[passoAtual]}`;
+    }
 }
 
-async function finalizar() {
-  const btn = document.getElementById("btn-enviar");
-  const nomeInput = document.getElementById("input-nome").value;
-  btn.disabled = true;
-  btn.innerText = "ENVIANDO...";
+function finalizar() {
+    if (pedido.itens.length === 0) return alert("Adicione itens ao pedido!");
 
-  const totalSoma = [...pedidoAtual.itens, ...pedidoAtual.adicionais].reduce((acc, i) => acc + i.preco, 0);
-  const numeroRegistro = Math.floor(1000 + Math.random() * 9999);
-  const dados = {
-    nome: nomeInput,
-    mesa: pedidoAtual.mesa,
-    total: `R$ ${totalSoma.toFixed(2).replace(".", ",")}`,
-    itens: pedidoAtual.itens,
-    adicionais: pedidoAtual.adicionais,
-    registro: numeroRegistro,
-    data: new Date().toLocaleString('pt-BR')
-  };
+    const total = parseFloat(document.getElementById("total-preview").innerText.split("R$ ")[1].replace(",", "."));
+    const novoRegistro = {
+        id: Date.now(),
+        data: new Date().toLocaleString(),
+        mesa: pedido.mesa,
+        cliente: pedido.nome,
+        itens: [...pedido.itens, ...pedido.adicionais],
+        total: total
+    };
 
-  try {
-    const response = await fetch("https://tokadolanche-api.onrender.com/novo-pedido", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(dados),
-    });
+    let historico = JSON.parse(localStorage.getItem("toka_registros") || "[]");
+    historico.push(novoRegistro);
+    localStorage.setItem("toka_registros", JSON.stringify(historico));
 
-    if (response.ok) {
-      let historico = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
-      historico.push(dados);
-      localStorage.setItem('historicoPedidos', JSON.stringify(historico));
-      
-      document.getElementById("t-nome").innerHTML = `<b>${nomeInput}</b><br>Pedido Enviado! Cozinha Notificada.`;
-      document.getElementById("toast").classList.add("show");
-      
-      setTimeout(() => { location.reload(); }, 2500);
-    } else {
-      btn.disabled = false;
-      btn.innerText = "ENVIAR PEDIDO";
-    }
-  } catch (e) {
-    btn.disabled = false;
-    btn.innerText = "ENVIAR PEDIDO";
-  }
+    alert("Pedido Finalizado e Gravado!");
+    location.reload();
 }
 
 function abrirRegistro() {
-  limparPedidosAntigos();
-  const modal = document.getElementById("modal-reg");
-  const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
-  let itensHtml = "";
+    document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+    document.getElementById("registro-aba").classList.add("active");
+    document.getElementById("titulo-passo").innerText = "Toka Do Lanche - REGISTRO";
+    document.querySelector(".controles").style.display = "none";
+    passoAtual = 8;
 
-  if (lista.length === 0) {
-    itensHtml = "<p style='color:#000; text-align:center;'>Nenhum pedido recente.</p>";
-  } else {
-    [...lista].reverse().forEach((p, idx) => {
-      const originalIndex = lista.length - 1 - idx;
-      itensHtml += `
-        <div style="background:#f4f4f4; color:#000; padding:15px; border-radius:8px; margin-bottom:15px; border-left:5px solid #ffcc00;">
-          <p><strong>Pedido #${p.registro}</strong></p>
-          <p style="font-size: 0.8em; color: #666;">${p.data}</p>
-          <p>Mesa: ${p.mesa} | Total: <strong>${p.total}</strong></p>
-          <button onclick="imprimirExtrato(${originalIndex})" style="background:#ffcc00; border:none; padding:10px; border-radius:5px; font-weight:bold; width:100%; cursor:pointer; margin-top:10px;">IMPRIMIR</button>
-        </div>`;
-    });
-  }
-
-  modal.innerHTML = `
-    <div style="background:#fff; padding:25px; border-radius:15px; width:90%; max-width:400px; max-height:85vh; overflow-y:auto;">
-      <h2 style="color:#000; text-align:center; margin-bottom:20px;">PEDIDOS (7H)</h2>
-      ${itensHtml}
-      <button onclick="fecharRegistro()" style="background:#000; color:#ffcc00; width:100%; padding:12px; border:none; border-radius:8px; font-weight:bold; margin-top:10px; cursor:pointer;">FECHAR</button>
-    </div>`;
-  modal.style.display = "flex";
-}
-
-function imprimirExtrato(index) {
-  const lista = JSON.parse(localStorage.getItem('historicoPedidos') || "[]");
-  const p = lista[index];
-  const artesanais = p.itens.filter(i => i.tipo === 'artesanal');
-  const win = window.open('', '', 'width=600,height=800');
-  
-  win.document.write(`
-    <html>
-      <body style="font-family:monospace; padding:20px;">
-        <center><h1>TOKADOLANCHE</h1><p>EXTRATO #${p.registro}</p></center>
-        <hr style="border: 1px dashed #000;">
-        <p>CLIENTE: ${p.nome} | MESA: ${p.mesa}</p>
-        <div style="border: 1px solid #000; padding: 10px; margin: 10px 0;">
-          <p><strong>👨‍🍳 PRODUÇÃO COZINHA:</strong></p>
-          ${artesanais.length > 0 ? artesanais.map(i => `<p>• ${i.nome}</p>`).join('') : '<p>Sem itens artesanais</p>'}
-          ${p.adicionais.length > 0 ? `<p>+ ${p.adicionais.map(a => a.nome).join(', ')}</p>` : ''}
+    const lista = document.getElementById("lista-registros");
+    const historico = JSON.parse(localStorage.getItem("toka_registros") || "[]");
+    
+    lista.innerHTML = historico.reverse().map(reg => `
+        <div class="registro-card">
+            <h4>Mesa ${reg.mesa} - ${reg.cliente}</h4>
+            <p>${reg.data}</p>
+            <p><strong>Itens:</strong> ${reg.itens.map(i => i.nome).join(", ")}</p>
+            <p><strong>Total: R$ ${reg.total.toFixed(2)}</strong></p>
+            <button class="btn-imprimir" onclick="imprimirCupom(${reg.id})">IMPRIMIR CUPOM</button>
         </div>
-        <hr style="border: 1px dashed #000;">
-        <p><strong>RESUMO FINANCEIRO:</strong></p>
-        ${p.itens.map(i => `<p>${i.nome} <span style="float:right;">R$ ${i.preco.toFixed(2)}</span></p>`).join('')}
-        ${p.adicionais.map(a => `<p>+ ${a.nome} <span style="float:right;">R$ ${a.preco.toFixed(2)}</span></p>`).join('')}
-        <hr style="border: 1px dashed #000;">
-        <center><h2>TOTAL: ${p.total}</h2></center>
-        <script>window.print(); window.close();<\/script>
-      </body>
-    </html>`);
-  win.document.close();
+    `).join("");
 }
 
-function fecharRegistro() {
-  document.getElementById("modal-reg").style.display = "none";
+function imprimirCupom(id) {
+    const historico = JSON.parse(localStorage.getItem("toka_registros") || "[]");
+    const reg = historico.find(r => r.id === id);
+    
+    const janela = window.open("", "", "width=300,height=600");
+    janela.document.write(`
+        <div style="font-family: monospace; width: 250px;">
+            <center><strong>TOKA DO LANCHE</strong><br>Cupom Não Fiscal<br>--------------------------</center>
+            Mesa: ${reg.mesa}<br>Cliente: ${reg.cliente}<br>Data: ${reg.data}<br>
+            --------------------------<br>
+            ${reg.itens.map(i => `${i.nome.padEnd(18)} R$ ${i.preco.toFixed(2)}`).join("<br>")}
+            <br>--------------------------<br>
+            <strong>TOTAL: R$ ${reg.total.toFixed(2)}</strong>
+            <br>--------------------------<br>
+            <center>Obrigado pela preferência!</center>
+        </div>
+    `);
+    janela.print();
+    janela.close();
 }
