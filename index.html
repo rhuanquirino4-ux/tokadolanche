@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Toka Do Lanche - Sistema Garçom</title>
+    <title>Toka Do Lanche</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <header class="header-vinho">
+    <header class="header-toka">
         <i class="fa-solid fa-chevron-left" onclick="voltar()"></i>
-        <h1>Toka Do Lanche - Mesas </h1>
-        <i class="fa-solid fa-rotate" onclick="location.reload()"></i>
+        <h1 id="titulo-passo">Toka Do Lanche - Mesas</h1>
+        <div class="header-actions">
+            <i class="fa-solid fa-receipt" onclick="abrirRegistro()"></i>
+            <i class="fa-solid fa-rotate" onclick="location.reload()"></i>
+        </div>
     </header>
 
     <main>
@@ -23,66 +26,249 @@
         <section id="step-2" class="step">
             <div class="container-input">
                 <label>NOME DO CLIENTE:</label>
-                <input type="text" id="input-nome" placeholder="Digite o nome aqui...">
+                <input type="text" id="input-nome" placeholder="Digite o nome...">
             </div>
         </section>
 
         <section id="step-3" class="step">
             <div class="lista-vertical">
-                <div class="card-produto" onclick="selecionarProd(this, 'X-Tudo Danilo', 35.00, 'artesanal')">
-                    <img src="hamburguer-classico.png">
-                    <div class="detalhe">
-                        <h3>X-Tudo Danilo</h3>
-                        <p>2 Carnes, ovo, bacon, salada.</p>
-                        <span>R$ 35,00</span>
-                    </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Misto Quente')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Misto Quente</h3><p>Presunto e queijo.</p><span>R$ 16,00</span></div>
                 </div>
-                <div class="card-produto" onclick="selecionarProd(this, 'Smash Simples', 19.90, 'artesanal')">
-                    <img src="hamburguer-classico.png">
-                    <div class="detalhe">
-                        <h3>Smash Simples</h3>
-                        <p>Pão, carne e queijo.</p>
-                        <span>R$ 19,90</span>
-                    </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Misto Burguer')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Misto Burguer</h3><p>Presunto, queijo e hambúrguer.</p><span>R$ 19,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Misto Bacon')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Misto Bacon</h3><p>Presunto, queijo e bacon.</p><span>R$ 21,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Misto Frango')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Misto Frango</h3><p>Presunto, queijo e frango.</p><span>R$ 21,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Misto Calabresa')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Misto Calabresa</h3><p>Presunto, queijo e calabresa.</p><span>R$ 21,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Burguer')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Burguer</h3><p>Presunto, queijo, hambúrguer, milho e batata.</p><span>R$ 20,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Salada')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Salada</h3><p>Queijo, hambúrguer, alface, tomate e milho.</p><span>R$ 20,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Salada Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Salada Egg</h3><p>Queijo, hambúrguer, ovo, alface, tomate e milho.</p><span>R$ 22,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Americano')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Americano</h3><p>Queijo, ovo, alface, tomate e milho.</p><span>R$ 20,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Bacon')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Bacon</h3><p>Presunto, queijo, bacon, hambúrguer, milho e batata.</p><span>R$ 25,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Bacon Salada')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Bacon Salada</h3><p>Presunto, queijo, bacon, hambúrguer, tomate, alface, milho e batata.</p><span>R$ 26,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Bacon Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Bacon Egg</h3><p>Presunto, queijo, bacon, hambúrguer, ovo, milho e batata.</p><span>R$ 26,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Bacon Salada Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Bacon Salada Egg</h3><p>Presunto, queijo, bacon, hambúrguer, ovo, alface, tomate, milho e batata.</p><span>R$ 27,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Frango')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Frango</h3><p>Presunto, queijo, frango, tomate, milho e batata.</p><span>R$ 25,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Frango Salada')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Frango Salada</h3><p>Presunto, queijo, frango, alface, tomate, milho e batata.</p><span>R$ 26,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Frango Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Frango Egg</h3><p>Frango, ovo, presunto e queijo.</p><span>R$ 26,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Frango Salada Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Frango Salada Egg</h3><p>Presunto, queijo, frango, ovo, alface, tomate, milho e batata.</p><span>R$ 27,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Calabresa')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Calabresa</h3><p>Calabresa, hambúrguer, presunto e queijo.</p><span>R$ 25,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Calabresa Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Calabresa Egg</h3><p>Calabresa, ovo, hambúrguer, presunto e queijo.</p><span>R$ 26,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Calabresa Salada Egg')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Calabresa Salada Egg</h3><p>Salada, ovo, calabresa, hambúrguer, presunto e queijo.</p><span>R$ 27,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Califórnia')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Califórnia</h3><p>Queijo, bacon, frango, ovo, milho e batata.</p><span>R$ 30,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Especial')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Especial</h3><p>Presunto, queijo, bacon, frango, alface, tomate, milho e batata.</p><span>R$ 30,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'X-Tudo')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>X-Tudo</h3><p>Completo com todos os ingredientes.</p><span>R$ 35,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Triplex')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <div class="detalhe"><h3>Triplex</h3><p>O maior da casa.</p><span>R$ 60,00</span></div>
                 </div>
             </div>
         </section>
 
         <section id="step-4" class="step">
             <div class="lista-adicionais">
-                <div class="item-adic" onclick="selecionarAdic(this, 'Bacon', 5.00)">Bacon Extra (+ R$ 5,00)</div>
-                <div class="item-adic" onclick="selecionarAdic(this, 'Cebola', 3.00)">Cebola Caramelizada (+ R$ 3,00)</div>
-                <div class="item-adic" onclick="selecionarAdic(this, 'Ovo', 2.50)">Ovo (+ R$ 2,50)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Catupiry', 5.00)">Catupiry (+ R$ 5,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Cheddar', 5.00)">Cheddar (+ R$ 5,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Bacon', 7.00)">Bacon (+ R$ 7,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Frango', 7.00)">Frango (+ R$ 7,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Ovo', 3.00)">Ovo (+ R$ 3,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Hambúrguer', 5.00)">Hambúrguer (+ R$ 5,00)</div>
+                <div class="item-adic" onclick="selecionarAdic(this, 'Molho Verde', 3.00)">Molho Verde (+ R$ 3,00)</div>
             </div>
         </section>
 
         <section id="step-5" class="step">
-            <div class="grid-bebidas">
-                <div class="card-bebida" onclick="selecionarProd(this, 'Coca-Cola', 8.00, 'industrial')">
-                    <img src="coca.jpg">
-                    <p>Coca-Cola</p>
+            <div class="lista-vertical">
+                <div class="card-produto" onclick="selecionarProd(this, 'Filé de Peixe')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="filedepeixeporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Filé de Peixe</h3><span>R$ 60,00</span></div>
                 </div>
-                <div class="card-bebida" onclick="selecionarProd(this, 'Suco', 10.00, 'industrial')">
-                    <img src="suco.jpeg">
-                    <p>Suco Natural</p>
+                <div class="card-produto" onclick="selecionarProd(this, 'Batata Simples')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="batataporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Batata Simples</h3><span>R$ 25,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Batata e Queijo')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="batataqueijoporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Batata e Queijo</h3><span>R$ 32,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Batata e Bacon')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="batatabaconporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Batata e Bacon</h3><span>R$ 32,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Batata Completa')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="batataqueijobaconcalabresaporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Batata Completa</h3><span>R$ 45,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Contra Filé')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="contrafileporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Contra Filé</h3><span>R$ 60,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Calabresa Porção')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="calabresaporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Calabresa Porção</h3><span>R$ 35,00</span></div>
+                </div>
+                <div class="card-produto" onclick="selecionarProd(this, 'Frango a Passarinho')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="frangoapassarinhoporção-cozinha.jpg">
+                    <div class="detalhe"><h3>Frango a Passarinho</h3><span>R$ 35,00</span></div>
                 </div>
             </div>
+        </section>
+
+        <section id="step-6" class="step">
+            <div class="grid-bebidas">
+                <div class="card-bebida" onclick="selecionarProd(this, 'Coca 2L')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="coca2l.jpg"><p>Coca 2L</p><span>R$ 17,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Coca Lata')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="cocalata350ml.jpg"><p>Coca Lata</p><span>R$ 7,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Guaraná Lata')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="guaranalata350ml.jpg"><p>Guaraná Lata</p><span>R$ 7,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Heineken 250ml')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="heinekengarrafa250ml.jpg"><p>Heineken</p><span>R$ 18,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Original 600ml')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="originalgarrafa600ml.jpg"><p>Original 600ml</p><span>R$ 16,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Skol Lata')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="skollata350ml.jpg"><p>Skol Lata</p><span>R$ 7,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Água s/ Gás')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="aguasemgas500ml.jpg"><p>Água s/ Gás</p><span>R$ 3,00</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Suco Polpa')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="sucopolpa.jpg"><p>Suco Polpa</p><span>R$ 8,00</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="step-7" class="step">
+            <div class="grid-bebidas">
+                <div class="card-bebida" onclick="selecionarProd(this, 'Mega Clássico')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="megaclassicopicole.jpg"><p>Mega Clássico</p><span>R$ 17,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'KitKat')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="kitkatpicole.jpg"><p>KitKat</p><span>R$ 17,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Prestigio')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="prestigiopicole.jpg"><p>Prestigio</p><span>R$ 15,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Manga')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="mangapicole.jpg"><p>Manga</p><span>R$ 5,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Uva')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="uvapicole.jpg"><p>Uva</p><span>R$ 5,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Batom')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="batompicole.jpg"><p>Batom</p><span>R$ 5,90</span>
+                </div>
+                <div class="card-bebida" onclick="selecionarProd(this, 'Chambinho')">
+                    <button class="btn-status" onclick="toggleStatus(event, this)"><i class="fa-solid fa-pencil"></i></button>
+                    <img src="chambinhopicole.jpg"><p>Chambinho</p><span>R$ 5,90</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="registro-aba" class="step">
+            <div id="lista-registros"></div>
         </section>
     </main>
 
     <footer class="controles">
+        <div id="total-preview">TOTAL: R$ 0,00</div>
         <button id="btn-proximo" onclick="proximo()">PRÓXIMO</button>
-        <button id="btn-enviar" onclick="finalizar()" style="display: none;">ENVIAR PEDIDO</button>
+        <button id="btn-enviar" onclick="finalizar()" style="display: none;">FINALIZAR</button>
     </footer>
-
-    <div id="registro-flutuante" onclick="abrirRegistro()">Registro</div>
-
-    <div id="modal-reg" class="modal"></div>
-
-    <div id="toast" class="toast">✅ Pedido de <span id="t-nome"></span> realizado!</div>
 
     <script src="script.js"></script>
 </body>
 </html>
-
-
